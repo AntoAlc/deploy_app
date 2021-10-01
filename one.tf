@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "var.my_region_us_east_1"
 }
 
 data "aws_ami" "amazon-linux-2" {
@@ -55,8 +55,8 @@ resource "aws_security_group" "sg" {
     },
    {
       description      = "HTTP"
-      from_port        = 8080
-      to_port          = 8080
+      from_port        = 80
+      to_port          = 80
       protocol         = "tcp"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
@@ -82,13 +82,51 @@ tags = {
   }
 }
 
-resource "aws_instance" "frontend" {
-  ami           = data.aws_ami.amazon-linux-2.id
+resource "aws_instance frontend" {
+  ami           := data.aws_ami.amazon-linux-2.id
   instance_type = "t2.micro"
   subnet_id = tolist(data.aws_subnet_ids.subnets.ids)[0]
   vpc_security_group_ids = [aws_security_group.sg.id]
-  key_name = "millave"
+  key_name = "myKey"
   tags = {
     Name = "Frontend"
   }
 }
+  
+  
+resource "aws_security_group" "sg" {
+   name = "SecurityGroupDHBackend"
+   description = "Grupo de seguridad de Backend"
+   vpc_id = aws_default_vpc.default.id
+   
+   ingress = [
+     {
+       description = "HTTPS"
+       from_port = 22
+       to_port = 22
+       protocol = "tcp"
+       cidr_blocks = ["0.0.0.0/0"]
+       ipv6_cidr_blocks = ["::/0"]
+       prefix_list_ids = []
+       security_groups = []
+       self = true
+     },
+   ]
+    
+  tags = {
+    Name = " SecurityGroupDHBackend "
+  }
+}
+
+resource "aws_instance" "backend" {
+  ami := data.aws_ami.amazon-linux-2.id
+  instance_type = "t2.micro"
+  subnet_id = tolist(data.aws_subnet_ids.subnets.ids)[0]
+  vpc_security_group_ids = [aws_security_group.sg.id]
+  key_name = "myKey"
+  tags = {
+  Name = "Backend"
+}
+  
+  
+
